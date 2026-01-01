@@ -90,7 +90,7 @@ def show_app():
 
         def show_table(filter=""):
             cursor.execute(
-                "SELECT id, app, user, password FROM accounts WHERE user_owner=?",
+                "SELECT account_id, app, user, password FROM accounts WHERE user_owner=?",
                 (st.session_state.username,)
             )
             data = cursor.fetchall()
@@ -135,7 +135,7 @@ def show_app():
         current_data = None
         if account_id > 0:
             cursor.execute(
-                "SELECT app, user, password FROM accounts WHERE id=? AND user_owner=?",
+                "SELECT app, user, password FROM accounts WHERE account_id=? AND user_owner=?",
                 (account_id, st.session_state.username)
             )
             current_data = cursor.fetchone()
@@ -171,7 +171,7 @@ def show_app():
                         
                         # UPDATE DB
                         cursor.execute(
-                            "UPDATE accounts SET app=?, user=?, password=? WHERE id=? AND user_owner=?",
+                            "UPDATE accounts SET app=?, user=?, password=? WHERE account_id=? AND user_owner=?",
                             (new_app, new_user, final_password, account_id, st.session_state.username)
                         )
                         cursor.connection.commit()
