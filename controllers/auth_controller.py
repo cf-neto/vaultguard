@@ -1,4 +1,6 @@
 from database.users import verify_user, user_exists, register_user
+from services.password_service import is_strong_password
+
 
 class AuthController:
     @staticmethod
@@ -13,16 +15,8 @@ class AuthController:
     
     @staticmethod
     def register(username: str, password: str):
-        if not username or not password:
-            return False, "Fill in all the fields."
+        valid, message = is_strong_password(password)
+        if not valid:
+            return False, message
         
-        if user_exists(username):
-            return False, "User already exists"
-        
-        try:
-            register_user(username, password)
-            return True, "User successfully registered!"
-        
-        except Exception as e:
-            return False, f"Error when registering: {str(e)}"
-        
+        return register_user(username, password)
