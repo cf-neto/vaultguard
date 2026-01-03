@@ -1,6 +1,8 @@
 import sqlite3 as sql
 import bcrypt
 
+from services.password_service import is_strong_password
+
 conn = sql.connect("data/passwd.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -15,13 +17,19 @@ def init_users():
     conn.commit()
 
 def register_user(username, password):
-    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    cursor.execute("INSERT INTO users(username, password) VALUES (?, ?)", (username, hashed))
-    conn.commit()
+    try:
+        hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        cursor.execute("INSERT INTO users(username, password) VALUES (?, ?)", (username, hashed))
+        conn.commit()
+        return True, "User registered successfully"
+    except sql.IntegrityError:
+        return False, "Username already exists"
+
 
 def verify_user(username, password):
     cursor.execute("SELECT password FROM users WHERE username=?", (username,))
     result = cursor.fetchone()
+    
     if result:
         return bcrypt.checkpw(password.encode(), result[0])
     return False
