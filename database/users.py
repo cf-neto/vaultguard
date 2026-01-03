@@ -1,7 +1,7 @@
 import sqlite3 as sql
 import bcrypt
 
-conn = sql.connect("passwd.db", check_same_thread=False)
+conn = sql.connect("data/passwd.db", check_same_thread=False)
 cursor = conn.cursor()
 
 def init_users():
