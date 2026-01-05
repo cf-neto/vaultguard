@@ -2,19 +2,37 @@ import streamlit as st
 import time
 
 from controllers.account_controller import AccountController
+from controllers.admin_controller import AdminController
 
 def show_app():
     st.title("🔐 VaultGuard ")
 
-    # --------------------
-    #   MENU
-    # --------------------
-    tabs = st.tabs(["Registered Accounts", "Manage Account", "Settings"])
+    # Verify if admin exists
+    is_admin = AdminController.check_admin_access(st.session_state.username)
 
-    # --------------------
-    #   REGISTERED ACCOUNTS
-    # --------------------
-    with tabs[0]:
+    # ====================
+    #   MENU
+    # ====================
+    if is_admin:
+        tabs = st.tabs(["Registered Accounts", "Manage Account", "Admin Panel", "Settings"])
+
+        idx_accounts = 0
+        idx_manage = 1
+        idx_dashboard = 2
+        idx_settings = 3
+    else:
+        tabs = st.tabs(["Registered Accounts", "Manage Account", "Settings"])
+
+        idx_accounts = 0
+        idx_manage = 1
+        idx_settings = 2
+        idx_dashboard = None
+        
+
+    # ====================
+    # REGISTERED ACCOUNTS
+    # ====================
+    with tabs[idx_accounts]:
         st.subheader("Registered Accounts")
 
         search = st.text_input("Search account:")
@@ -24,10 +42,10 @@ def show_app():
         st.dataframe(df, width="stretch")
 
 
-    # --------------------
-    #   FIELD SEARCH
-    # --------------------
-    with tabs[1]:
+    # ====================
+    # FIELD SEARCH
+    # ====================
+    with tabs[idx_manage]:
         # NEW ACCOUNT
         st.subheader("Add new account")
         with st.form("add_form"):
@@ -48,12 +66,13 @@ def show_app():
         
         st.divider()
 
-        # EDIT
+        # ====================
+        # EDIT ACCOUNT
+        # ====================
         st.subheader("Edit Account")
 
         account_id = st.number_input("Account ID to edit", min_value=1, step=1)
         
-        current_data = None
         if account_id:
             account_data, error = AccountController.get_account(account_id, st.session_state.username)
             if error:
@@ -90,9 +109,9 @@ def show_app():
 
         st.divider()
 
-        st.divider()
-
+        # ====================
         # DELETE ACCOUNT
+        # ====================
         st.subheader("Delete Account")
 
         account_id = st.number_input("Account ID to delete", min_value=1, step=1)
@@ -114,18 +133,28 @@ def show_app():
 
         st.divider()
 
+    # ====================
+    # DASHBOARD (ONLY ADMIN)
+    # ====================
+    if is_admin and idx_dashboard is not None:
+        with tabs[idx_dashboard]:
+            from view.admin_view import show_info
+            show_info()
 
-    # --------------------
-    #   SETTINGS
-    # --------------------
-    with tabs[2]:
+
+    # ====================
+    # SETTINGS
+    # ====================
+    with tabs[idx_settings]:
         st.subheader("Settings")
 
         st.write("Account:")
         st.text_input("Username", value=st.session_state.username, disabled=True)
         st.text_input("Password", value="*******", disabled=True)
-
+        
+        # ====================
         # LOGOUT
+        # ====================
         if st.button("Logout"):
             st.session_state.logged_in = False
             st.rerun()         
