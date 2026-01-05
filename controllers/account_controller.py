@@ -2,12 +2,25 @@ import pandas as pd
 from database.accounts import (
     add,
     delete_account,
-    update_account,
+    update_account as update_account_db,
     get_account_by_id,
-    get_accounts_by_owner
+    get_accounts_by_owner,
+    delete_all_accounts as delete_all_accounts_db
+)
+
+from database.users import (
+    is_admin
 )
 
 class AccountController:
+
+    @staticmethod
+    def create_account(app: str, user: str, password: str, owner: str):
+        if not app or not user or not password:
+            return False, "Fill in all fields."
+        
+        add(app, user, password, owner)
+        return True, "Account added successfully."
 
     @staticmethod
     def list_accounts(owner: str, search: str = "") -> pd.DataFrame:
@@ -21,12 +34,20 @@ class AccountController:
         return df
 
     @staticmethod
-    def create_account(app: str, user: str, password: str, owner: str):
-        if not app or not user or not password:
-            return False, "Fill in all fields."
+    def get_account(account_id: int, owner: str):
+        if account_id <= 0:
+            return False, "Invalid account ID"
         
-        add(app, user, password, owner)
-        return True, "Account added successfully."
+        account = get_account_by_id(account_id, owner)
+
+        if not account:
+            return None, "Account not found or permission denied."
+        
+        return {
+            "app": account[0],
+            "user": account[1],
+            "password": account[2]
+        }, None
 
     @staticmethod
     def update_account(account_id: int, app: str, user: str, password: str, owner: str):
@@ -36,7 +57,7 @@ class AccountController:
         if not app or not user:
             return False, "App and Username are required."
 
-        updated = update_account(account_id, app, user, password, owner)
+        updated = update_account_db(account_id, app, user, password, owner)
 
         if not updated:
             return False, "App and Username are required."
@@ -54,19 +75,15 @@ class AccountController:
             return False, "Account not found or permission denied"
         
         return True, "Account deleted successfully."
-    
-    @staticmethod
-    def get_account(account_id: int, owner: str):
-        if account_id <= 0:
-            return False, "Invalid account ID"
-        
-        account = get_account_by_id(account_id, owner)
 
-        if not account:
-            return None, "Account not found or permission denied."
+    @staticmethod
+    def delete_all_accounts(username: str):
+        if is_admin(username):
+            return False, f"{username} is admin"
         
-        return {
-            "app": account[0],
-            "user": account[1],
-            "password": account[2]
-        }, None
+        deleted = delete_all_accounts_db(username)
+
+        if not deleted:
+            return False, "Account not found or permission denied"
+        
+        return True, "All accounts deleted successfully."
