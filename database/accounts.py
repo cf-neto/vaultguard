@@ -37,6 +37,14 @@ def delete_account(account_id, user_owner):
     conn.commit()
     return cursor.rowcount > 0
 
+def delete_all_accounts(user_owner):
+    cursor.execute(
+        "DELETE FROM accounts WHERE user_owner=?",
+        (user_owner,)
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
 # UPDATE ACCOUNT
 def update_account(account_id: int, app: str, user: str, password: str, user_owner: str) -> bool:
     cursor.execute(
@@ -67,4 +75,9 @@ def get_accounts_by_owner(owner: str):
 
     return cursor.fetchall()
 
+def get_account_stats():
+    cursor.execute("SELECT COUNT(*) FROM accounts")
+    total_accounts = cursor.fetchone()[0]
+
+    return {"total_accounts": total_accounts}
 init()
