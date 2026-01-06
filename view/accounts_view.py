@@ -9,6 +9,7 @@ def show_app():
 
     # Verify if admin exists
     is_admin = AdminController.check_admin_access(st.session_state.username)
+    is_super_admin = AdminController.check_super_admin_access(st.session_state.username)
 
     # ====================
     #   MENU
@@ -20,6 +21,15 @@ def show_app():
         idx_manage = 1
         idx_dashboard = 2
         idx_settings = 3
+
+    elif is_super_admin:
+        tabs = st.tabs(["Registered Accounts", "Manage Account", "Super Admin Panel", "Settings"])
+
+        idx_accounts = 0
+        idx_manage = 1
+        idx_dashboard = 2
+        idx_settings = 3
+
     else:
         tabs = st.tabs(["Registered Accounts", "Manage Account", "Settings"])
 
@@ -136,7 +146,7 @@ def show_app():
     # ====================
     # DASHBOARD (ONLY ADMIN)
     # ====================
-    if is_admin and idx_dashboard is not None:
+    if (is_admin or is_super_admin) and idx_dashboard is not None:
         with tabs[idx_dashboard]:
             from view.admin_view import show_info
             show_info()
